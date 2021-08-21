@@ -13,4 +13,4 @@ modules:
     pisugar2: True
   lovense:
   receipt_printer:
-    printer: 'Star_Micronics___eb89b6a'
+    name: 'Star_Micronics___eb89b6a'

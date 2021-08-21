@@ -1,3 +1,4 @@
+import yaml
 import logging
 from receipt_printer import ReceiptPrinter
 
@@ -7,7 +8,15 @@ logging.basicConfig(
 )
 
 if __name__ == "__main__":
-    x = ReceiptPrinter()
+    try:
+        with open('config.yaml','r') as file:
+            config = yaml.safe_load(file)
+    except IOError:
+        logger.error("No config file, see config.yaml.sample")
+        sys.exit(1)
+    modules = config['modules']
+
+    x = ReceiptPrinter(**modules['receipt_printer'])
     x.start()
     try:
         input("Press enter key to end")

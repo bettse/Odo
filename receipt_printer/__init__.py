@@ -9,18 +9,15 @@ from odo.models import BaseMqttDeviceModel
 from espkey.models import ESPKeyCredential
 
 class ReceiptPrinter(BaseMqttDeviceModel):
-    def __init__(self, printer='Star_Micronics___eb89b6a', *args, **kwargs):
+    def __init__(self, name='Star_Micronics___eb89b6a', options=[], *args, **kwargs):
         super(ReceiptPrinter, self).__init__(*args, **kwargs)
         self.logger = logging.getLogger('odo.printer.Receipt')
-        self.printer = printer
+        self.name = name
+        self.options = options
         self._subscribe_topics = [
             self.credential_topic["seen"],
             self.command_topic
         ]
-
-    def _subscribe(self):
-        for topic in self._subscribe_topics:
-            self.mqtt_client.subscribe(topic)
 
     def _on_message(self, client, userdata, msg):
         self.logger.debug(f"Message received-> {msg.topic} {str(msg.payload)}")
@@ -35,7 +32,13 @@ class ReceiptPrinter(BaseMqttDeviceModel):
         message = json.loads(msg.payload)
         if message["type"] == "wiegand":
             credential = ESPKeyCredential(payload=message["payload"])
-            command = ['/usr/bin/lp', '-d', 'Star_Micronics___eb89b6a', '-o', 'media=custom_71.97x99.84mm_71.97x99.84mm', '-o', 'orientation-requested=3']
+            command = ['/usr/bin/lp', '-d', self.name]
+            print(self.options)
+            for option in self.options:
+                command.append('-o')
+                command.append(option)
+
+            print(command)
             completed = subprocess.run(
                     command,
                     input=f"{credential}\n",

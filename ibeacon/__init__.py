@@ -76,7 +76,7 @@ class IBeacon(BaseMqttDeviceModel):
         if wait > 0:
             sleep(wait)
 
-    def start_advertising(self, major, minor, interval_ms=2000):
+    def start_advertising(self, major, minor):
         adv = self.advertisement_template(major, minor)
         self.logger.debug(f"Start advertising: {self.bytes_to_strarray(adv)}")
 
@@ -84,10 +84,9 @@ class IBeacon(BaseMqttDeviceModel):
         self.run_hci_cmd(["0x08", "0x0008"] + [format(len(adv), "x")] + self.bytes_to_strarray(adv))
 
         # Set BLE advertising mode
-        interval_enc = struct.pack("<h", interval_ms)
         hci_set_adv_params = ["0x08", "0x0006"]
-        hci_set_adv_params += self.bytes_to_strarray(interval_enc)
-        hci_set_adv_params += self.bytes_to_strarray(interval_enc)
+        hci_set_adv_params += "a0", "00"
+        hci_set_adv_params += "a0", "00"
         hci_set_adv_params += ["03", "00", "00", "00", "00", "00", "00", "00", "00"]
         hci_set_adv_params += ["07", "00"]
         self.run_hci_cmd(hci_set_adv_params)
@@ -97,7 +96,7 @@ class IBeacon(BaseMqttDeviceModel):
 
     def advertisement_template(self, major="0000", minor="0000"):
         adv = ""
-        adv += "1e"  # length (30)
+        adv += "1a"  # length
         adv += "ff"  # manufacturer specific data
         adv += "4c00"  # company ID (Apple)
         adv += "0215"  # offline finding type and length

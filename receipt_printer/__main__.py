@@ -19,7 +19,7 @@ if __name__ == "__main__":
     x = ReceiptPrinter(**modules['receipt_printer'])
     x.start()
     try:
-        input("Press enter key to end")
+        input("Press enter key to end\n")
     except KeyboardInterrupt:
         pass
     x.terminate()

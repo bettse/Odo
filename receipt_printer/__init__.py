@@ -4,9 +4,15 @@ import json
 import logging
 import subprocess
 from time import sleep
+from datetime import datetime
 
 from odo.models import BaseMqttDeviceModel
 from espkey.models import ESPKeyCredential
+
+logging.basicConfig(
+        level=logging.DEBUG,
+        format='%(asctime)s - [%(name)s] - %(levelname)s - %(message)s [%(threadName)s]',
+)
 
 class ReceiptPrinter(BaseMqttDeviceModel):
     def __init__(self, name='Star_Micronics___eb89b6a', options=[], *args, **kwargs):
@@ -30,6 +36,8 @@ class ReceiptPrinter(BaseMqttDeviceModel):
 
     def _handle_credential(self, msg=None):
         message = json.loads(msg.payload)
+        self.logger.debug(f"Handle Credential -> {message.get('type')}")
+
         if message["type"] == "wiegand":
             credential = ESPKeyCredential(payload=message["payload"])
             command = ['/usr/bin/lp', '-d', self.name]
@@ -38,10 +46,12 @@ class ReceiptPrinter(BaseMqttDeviceModel):
                 command.append('-o')
                 command.append(option)
 
-            print(command)
+            now = today = datetime.now()
+            date = now.strftime("%Y-%m-%d")
+            time = now.strftime("%H:%M:%S")
             completed = subprocess.run(
                     command,
-                    input=f"{credential}\n",
+                    input=f"****Credential****\n{date} {time}\n{credential}\n******************\n",
                     capture_output=True,
                     text=True,
                     )
